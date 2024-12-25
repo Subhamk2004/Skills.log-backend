@@ -11,17 +11,22 @@ router.get("/api/github-repos", async (req, res) => {
 
     try {
         let response;
-
-        // Check if GITHUB_TOKEN is available
-        if (GITHUB_TOKEN) {
+        let { search } = req.query;
+        if (GITHUB_TOKEN && !search) {
             response = await fetch(`https://api.github.com/user/repos?per_page=5&sort=updated`, {
                 headers: {
                     Authorization: `Bearer ${GITHUB_TOKEN}`,
                 },
             });
-        } else {
-            // Fetch public repos of the user
+        } else if (!GITHUB_TOKEN && !search) {
             response = await fetch(`https://api.github.com/users/${user}/repos?per_page=5&sort=updated`);
+        }
+        else if (search) {
+            response = await fetch(`https://api.github.com/search/repositories?q=${search}+user:${user}`, {
+                headers: {
+                    Authorization: `Bearer ${GITHUB_TOKEN}`,
+                },
+            })
         }
 
         if (!response.ok) {
@@ -30,29 +35,41 @@ router.get("/api/github-repos", async (req, res) => {
                 error: `GitHub API error: ${response.statusText}`,
             });
         }
+        // let data = await response.json();
+        // console.log(data);
 
-        const repos = await response.json();
+        // let repos = [];
+        let repos = await response.json();
+        console.log(repos.length);
 
-        const strippedRepos = repos.map((repo) => ({
-            name: repo.name,
-            visibility: repo.private ? "private" : "public",
-            description: repo.description || "No description provided.",
-            owner: {
-                login: repo.owner.login,
-                avatar_url: repo.owner.avatar_url,
-                html_url: repo.owner.html_url,
-            },
-            html_url: repo.html_url,
-            language: repo.language || "Not specified",
-            stargazers_count: repo.stargazers_count,
-            forks_count: repo.forks_count,
-            open_issues_count: repo.open_issues_count,
-            updated_at: repo.updated_at,
-            default_branch: repo.default_branch,
-            size: repo.size,
-            watchers_count: repo.watchers_count,
-            id: repo.id,
-        }));
+        let strippedRepos;
+        if (!search) {
+            strippedRepos = repos.map((repo) => ({
+                name: repo.name,
+                visibility: repo.private ? "private" : "public",
+                description: repo.description || "No description provided.",
+                owner: {
+                    login: repo.owner.login,
+                    avatar_url: repo.owner.avatar_url,
+                    html_url: repo.owner.html_url,
+                },
+                html_url: repo.html_url,
+                language: repo.language || "Not specified",
+                stargazers_count: repo.stargazers_count,
+                forks_count: repo.forks_count,
+                open_issues_count: repo.open_issues_count,
+                updated_at: repo.updated_at,
+                default_branch: repo.default_branch,
+                size: repo.size,
+                watchers_count: repo.watchers_count,
+                id: repo.id,
+            }));
+        }
+        else{
+            strippedRepos = repos
+            console.log(strippedRepos, repos.total_count);
+            
+        }
 
         res.status(200).json(strippedRepos);
     } catch (error) {
