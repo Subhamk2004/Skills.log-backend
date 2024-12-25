@@ -39,7 +39,7 @@ export const createUserValidationSchema = {
             errorMessage: 'Name is required',
         },
     },
-    githubUsername: {
+    githubusername: {
         in: ['body'],
         isString: {
             errorMessage: 'GitHub username must be a string',
@@ -62,7 +62,7 @@ export const createUserValidationSchema = {
             errorMessage: 'Institute is required',
         },
     },
-    primaryWork: {
+    primarywork: {
         in: ['body'],
         isString: {
             errorMessage: 'Primary work must be a string',

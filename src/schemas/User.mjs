@@ -19,19 +19,20 @@ let UserSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-    githubUsername: {
+    githubusername: {
         type: String,
         required: false,
     },
     pat: {
         type: String,
+        unique: true,
         required: false,
     },
     institute: {
         type: String,
         required: true,
     },
-    primaryWork: {
+    primarywork: {
         type: String,
         required: true,
     },

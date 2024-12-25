@@ -1,13 +1,17 @@
 import express from "express";
 import dotenv from "dotenv";
+import { encrypt, decrypt } from '../utils/patEncryptor.mjs';
+import { User } from "../schemas/User.mjs";
 
-dotenv.config();
 
 let router = express.Router();
 
 router.get("/api/github-repos", async (req, res) => {
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Use environment variable
-    const user = "Subhamk2004";
+    let GITHUB_TOKEN; // Use environment variable
+    const user = req.user.githubusername;
+    GITHUB_TOKEN = req.user.pat;
+    // console.log(GITHUB_TOKEN);
+    const decryptedPAT = decrypt(GITHUB_TOKEN);
 
     try {
         let response;
@@ -15,7 +19,7 @@ router.get("/api/github-repos", async (req, res) => {
         if (GITHUB_TOKEN && !search) {
             response = await fetch(`https://api.github.com/user/repos?per_page=5&sort=updated`, {
                 headers: {
-                    Authorization: `Bearer ${GITHUB_TOKEN}`,
+                    Authorization: `Bearer ${decryptedPAT}`,
                 },
             });
         } else if (!GITHUB_TOKEN && !search) {
@@ -24,7 +28,7 @@ router.get("/api/github-repos", async (req, res) => {
         else if (search) {
             response = await fetch(`https://api.github.com/search/repositories?q=${search}+user:${user}`, {
                 headers: {
-                    Authorization: `Bearer ${GITHUB_TOKEN}`,
+                    Authorization: `Bearer ${decryptedPAT}`,
                 },
             })
         }
@@ -65,10 +69,10 @@ router.get("/api/github-repos", async (req, res) => {
                 id: repo.id,
             }));
         }
-        else{
+        else {
             strippedRepos = repos
             console.log(strippedRepos, repos.total_count);
-            
+
         }
 
         res.status(200).json(strippedRepos);

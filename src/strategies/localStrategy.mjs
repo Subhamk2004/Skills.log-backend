@@ -1,18 +1,18 @@
 import passport from 'passport';
 import { Strategy } from 'passport-local';
 import { User } from '../schemas/User.mjs';
-
+import { comparePassword } from '../utils/passwordEncryptor.mjs';
 
 passport.serializeUser((user, done) => {
-    console.log("Inside serialize user");
+    // console.log("Inside serialize user");
     done(null, user.email);
 });
 
 passport.deserializeUser(async (email, done) => {
-    console.log('Inside deserialization');
+    // console.log('Inside deserialization');
     try {
         let findUser = await User.findOne({ email });
-        console.log(findUser);
+        // console.log(findUser);
 
         if (!findUser) throw new Error('User not found');
         done(null, findUser);

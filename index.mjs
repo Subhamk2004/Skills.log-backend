@@ -3,6 +3,8 @@ import { configDotenv } from "dotenv";
 import GithubRepo from "./src/routes/GithubRepo.mjs";
 import cors from "cors";
 import databaseSessionHandler from "./src/utils/DatabaseSessionHandler.mjs";
+import signup from "./src/routes/signup.mjs";
+import Login from "./src/routes/login.mjs";
 
 let app = express();
 app.use(express.json());
@@ -36,3 +38,5 @@ app.listen(PORT, () => {
 
 databaseSessionHandler(app);
 app.use(GithubRepo);
+app.use(signup);
+app.use(Login);
