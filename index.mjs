@@ -5,6 +5,7 @@ import cors from "cors";
 import databaseSessionHandler from "./src/utils/DatabaseSessionHandler.mjs";
 import signup from "./src/routes/signup.mjs";
 import Login from "./src/routes/login.mjs";
+import createTask from "./src/routes/createTask.mjs";
 
 let app = express();
 app.use(express.json());
@@ -40,3 +41,4 @@ databaseSessionHandler(app);
 app.use(GithubRepo);
 app.use(signup);
 app.use(Login);
+app.use(createTask);
