@@ -6,6 +6,7 @@ import databaseSessionHandler from "./src/utils/DatabaseSessionHandler.mjs";
 import signup from "./src/routes/signup.mjs";
 import Login from "./src/routes/login.mjs";
 import createTask from "./src/routes/createTask.mjs";
+import getTasks from "./src/routes/getTasks.mjs";
 
 let app = express();
 app.use(express.json());
@@ -42,3 +43,4 @@ app.use(GithubRepo);
 app.use(signup);
 app.use(Login);
 app.use(createTask);
+app.use(getTasks);
