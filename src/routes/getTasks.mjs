@@ -1,13 +1,15 @@
 import express from "express";
-import Task from "../schemas/Task.mjs";
+import updateTaskStatus from '../utils/TaskStatusUpdater.mjs'
 
 const router = express.Router();
 
 router.get("/api/tasks", async (req, res) => {
     try {
-        const tasks = await Task.find();
-        res.json({isSaved: true,
-            tasks: tasks,
+        // Call updateTaskStatuses directly - no need to fetch tasks first
+        const updatedTasks = await updateTaskStatus();
+        res.json({
+            isSaved: true,
+            tasks: updatedTasks
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
