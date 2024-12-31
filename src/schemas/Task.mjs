@@ -30,6 +30,10 @@ let TaskSchema = mongoose.Schema({
         type: String,
         required: true,
     },
+    type: {
+        type: String,
+        required: true,
+    },
 });
 
 export default mongoose.model("Task", TaskSchema);

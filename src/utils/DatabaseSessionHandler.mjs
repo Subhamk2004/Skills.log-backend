@@ -9,6 +9,9 @@ import passport from 'passport';
 dotenv.config();
 
 let mongoOptions = {
+    connectTimeoutMS: 60000,  // Increase timeout to 60 seconds
+    socketTimeoutMS: 45000,   // Socket timeout
+    serverSelectionTimeoutMS: 60000,
     retryWrites: true,
     w: "majority",
     tls: true,

@@ -55,4 +55,10 @@ export const TaskValidationSchema = {
         },
         optional: true,
     },
+    type: {
+        in: ['body'],
+        notEmpty: {
+            errorMessage: 'Type is required',
+        }
+    }
 };
