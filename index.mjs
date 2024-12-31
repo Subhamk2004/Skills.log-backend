@@ -8,6 +8,7 @@ import Login from "./src/routes/login.mjs";
 import createTask from "./src/routes/createTask.mjs";
 import getTasks from "./src/routes/getTasks.mjs";
 import updateTask from './src/routes/updateTask.mjs'
+import StreakRouter from './src/routes/getStreak.mjs'
 
 let app = express();
 app.use(express.json());
@@ -46,3 +47,4 @@ app.use(Login);
 app.use(createTask);
 app.use(getTasks);
 app.use(updateTask);
+app.use(StreakRouter);
