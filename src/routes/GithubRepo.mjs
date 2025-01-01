@@ -8,7 +8,7 @@ let router = express.Router();
 
 router.get("/api/github-repos", async (req, res) => {
     let GITHUB_TOKEN; // Use environment variable
-    const user = req.user.githubusername;
+    const user = req.user?.githubusername;
     GITHUB_TOKEN = req.user.pat;
     // console.log(GITHUB_TOKEN);
     const decryptedPAT = decrypt(GITHUB_TOKEN);
