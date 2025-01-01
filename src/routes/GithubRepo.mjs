@@ -1,51 +1,63 @@
+// GithubRepo.mjs
 import express from "express";
 import dotenv from "dotenv";
 import { encrypt, decrypt } from '../utils/patEncryptor.mjs';
 import { User } from "../schemas/User.mjs";
 
-
-let router = express.Router();
+const router = express.Router();
 
 router.get("/api/github-repos", async (req, res) => {
-    let GITHUB_TOKEN; // Use environment variable
-    const user = req.user?.githubusername;
-    GITHUB_TOKEN = req.user.pat;
-    // console.log(GITHUB_TOKEN);
-    const decryptedPAT = decrypt(GITHUB_TOKEN);
-
     try {
+        // Check if user is authenticated
+        if (!req.user) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+
+        // Get user details
+        const user = req.user.githubusername;
+        let decryptedPAT;
+
+        // Only try to decrypt PAT if it exists
+        if (req.user.pat) {
+            try {
+                decryptedPAT = decrypt(req.user.pat);
+            } catch (error) {
+                console.error('PAT decryption error:', error);
+                // Continue without PAT if decryption fails
+            }
+        }
+
         let response;
-        let { search } = req.query;
-        if (GITHUB_TOKEN && !search) {
-            response = await fetch(`https://api.github.com/user/repos?per_page=5&sort=updated`, {
-                headers: {
-                    Authorization: `Bearer ${decryptedPAT}`,
-                },
-            });
-        } else if (!GITHUB_TOKEN && !search) {
-            response = await fetch(`https://api.github.com/users/${user}/repos?per_page=5&sort=updated`);
+        const { search } = req.query;
+
+        // Build headers object
+        const headers = decryptedPAT
+            ? { Authorization: `Bearer ${decryptedPAT}` }
+            : {};
+
+        // Determine which API endpoint to use
+        let apiUrl;
+        if (search) {
+            apiUrl = `https://api.github.com/search/repositories?q=${search}+user:${user}`;
+        } else {
+            apiUrl = decryptedPAT
+                ? 'https://api.github.com/user/repos?per_page=5&sort=updated'
+                : `https://api.github.com/users/${user}/repos?per_page=5&sort=updated`;
         }
-        else if (search) {
-            response = await fetch(`https://api.github.com/search/repositories?q=${search}+user:${user}`, {
-                headers: {
-                    Authorization: `Bearer ${decryptedPAT}`,
-                },
-            })
-        }
+
+        // Make the API request
+        response = await fetch(apiUrl, { headers });
 
         if (!response.ok) {
             console.error(`GitHub API error: ${response.statusText}`);
             return res.status(response.status).json({
-                error: `GitHub API error: ${response.statusText}`,
+                error: `GitHub API error: ${response.statusText}`
             });
         }
-        // let data = await response.json();
-        // console.log(data);
 
-        // let repos = [];
-        let repos = await response.json();
-        console.log(repos.length);
+        const repos = await response.json();
 
+        // Process the response based on whether it's a search or regular request
         let strippedRepos;
         if (!search) {
             strippedRepos = repos.map((repo) => ({
@@ -68,17 +80,17 @@ router.get("/api/github-repos", async (req, res) => {
                 watchers_count: repo.watchers_count,
                 id: repo.id,
             }));
-        }
-        else {
-            strippedRepos = repos
-            console.log(strippedRepos, repos.total_count);
-
+        } else {
+            strippedRepos = repos;
         }
 
         res.status(200).json(strippedRepos);
     } catch (error) {
         console.error("Error fetching repos:", error);
-        res.status(500).json({ error: "Failed to fetch repos" });
+        res.status(500).json({
+            error: "Failed to fetch repos",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 
