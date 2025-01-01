@@ -9,6 +9,11 @@ import createTask from "./src/routes/createTask.mjs";
 import getTasks from "./src/routes/getTasks.mjs";
 import updateTask from './src/routes/updateTask.mjs'
 import StreakRouter from './src/routes/getStreak.mjs'
+import createNote from "./src/routes/createNote.mjs";
+import notes from "./src/routes/notes.mjs";
+import logout from "./src/routes/logout.mjs";
+import Friend from './src/routes/Friend.mjs';
+
 
 let app = express();
 app.use(express.json());
@@ -34,7 +39,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-let PORT = process.env.PORT || 3000;
+let PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
@@ -48,3 +53,7 @@ app.use(createTask);
 app.use(getTasks);
 app.use(updateTask);
 app.use(StreakRouter);
+app.use(createNote);
+app.use(notes);
+app.use(logout);
+app.use(Friend);

@@ -52,14 +52,31 @@ let UserSchema = mongoose.Schema({
         type: [String],
         required: false,
     },
-    friends: {
-        type: [String],
-        required: false,
-    },
+    friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     created_at: {
         type: Date,
         default: Date.now,
     },
+    friendRequests: [{
+        from: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        status: {
+            type: String,
+            enum: ['pending', 'accepted', 'rejected'],
+            default: 'pending'
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
 })
 
-export let User = mongoose.model('User',UserSchema);
+
+
+export let User = mongoose.model('User', UserSchema);

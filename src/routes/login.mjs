@@ -17,7 +17,7 @@ router.post("/api/login", passport.authenticate("local"),
     });
 
 router.get('/api/login/status', (req, res) => {
-    console.log(req.user);
+    console.log(req?.user);
     if (req.user) {
         res.status(200).json({
             user: req.user,
