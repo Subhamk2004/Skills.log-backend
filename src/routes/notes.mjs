@@ -34,7 +34,7 @@ router.delete("/api/notes", async (req, res) => {
         // Get user details
         let username;
         if (req.user) {
-            username = req.user.usernme;
+            username = req.user.username;
         }
         let noteId = req.body.id;
         console.log(noteId);
