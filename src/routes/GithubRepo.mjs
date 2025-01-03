@@ -1,10 +1,15 @@
-// GithubRepo.mjs
 import express from "express";
 import dotenv from "dotenv";
 import { encrypt, decrypt } from '../utils/patEncryptor.mjs';
 import { User } from "../schemas/User.mjs";
 
 const router = express.Router();
+
+// Initialize cache object
+const cache = {
+    repos: new Map(),
+    cacheTimeout: 5 * 60 * 1000 // 5 minutes in milliseconds
+};
 
 router.get("/api/github-repos", async (req, res) => {
     try {
@@ -15,49 +20,90 @@ router.get("/api/github-repos", async (req, res) => {
 
         // Get user details
         const user = req.user.githubusername;
-        let decryptedPAT;
 
-        // Only try to decrypt PAT if it exists
+        // Check cache first
+        const cacheKey = `${user}-${req.query.search || ''}`;
+        const cachedData = cache.repos.get(cacheKey);
+        if (cachedData && Date.now() - cachedData.timestamp < cache.cacheTimeout) {
+            return res.status(200).json(cachedData.data);
+        }
+
+        // PAT Handling
+        let decryptedPAT;
         if (req.user.pat) {
             try {
                 decryptedPAT = decrypt(req.user.pat);
+                console.log('PAT decryption successful');
             } catch (error) {
                 console.error('PAT decryption error:', error);
-                // Continue without PAT if decryption fails
+                // Log additional details in development
+                if (process.env.NODE_ENV === 'development') {
+                    console.error('Full PAT error:', error);
+                }
             }
         }
 
-        let response;
+        // Configure headers
+        const headers = {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'SkillsLog-App',
+            ...(decryptedPAT && {
+                'Authorization': `Bearer ${decryptedPAT}`
+            })
+        };
+
+        // Determine API endpoint
         const { search } = req.query;
-
-        // Build headers object
-        const headers = decryptedPAT
-            ? { Authorization: `Bearer ${decryptedPAT}` }
-            : {};
-
-        // Determine which API endpoint to use
         let apiUrl;
         if (search) {
-            apiUrl = `https://api.github.com/search/repositories?q=${search}+user:${user}`;
+            apiUrl = `https://api.github.com/search/repositories?q=${encodeURIComponent(search)}+user:${encodeURIComponent(user)}`;
         } else {
             apiUrl = decryptedPAT
                 ? 'https://api.github.com/user/repos?per_page=5&sort=updated'
-                : `https://api.github.com/users/${user}/repos?per_page=5&sort=updated`;
+                : `https://api.github.com/users/${encodeURIComponent(user)}/repos?per_page=5&sort=updated`;
+        }
+
+        // Log request details in development
+        if (process.env.NODE_ENV === 'development') {
+            console.log('Making GitHub API request:', {
+                url: apiUrl,
+                headerKeys: Object.keys(headers),
+                hasAuth: !!decryptedPAT
+            });
         }
 
         // Make the API request
-        response = await fetch(apiUrl, { headers });
+        const response = await fetch(apiUrl, {
+            headers,
+            timeout: 8000 // 8 second timeout
+        });
 
+        // Handle API response
         if (!response.ok) {
-            console.error(`GitHub API error: ${response.statusText}`);
+            const rateLimitRemaining = response.headers.get('x-ratelimit-remaining');
+            const rateLimitReset = response.headers.get('x-ratelimit-reset');
+            const responseBody = await response.text();
+
+            console.error('GitHub API Error:', {
+                status: response.status,
+                statusText: response.statusText,
+                rateLimitRemaining,
+                rateLimitReset,
+                body: responseBody
+            });
+
             return res.status(response.status).json({
-                error: `GitHub API error: ${response.statusText}`
+                error: `GitHub API error: ${response.statusText}`,
+                rateLimitInfo: {
+                    remaining: rateLimitRemaining,
+                    resetsAt: rateLimitReset ? new Date(rateLimitReset * 1000) : null
+                }
             });
         }
 
         const repos = await response.json();
 
-        // Process the response based on whether it's a search or regular request
+        // Process repositories
         let strippedRepos;
         if (!search) {
             strippedRepos = repos.map((repo) => ({
@@ -81,10 +127,17 @@ router.get("/api/github-repos", async (req, res) => {
                 id: repo.id,
             }));
         } else {
-            strippedRepos = repos;
+            strippedRepos = repos.items || repos; // Handle search results differently
         }
 
+        // Update cache
+        cache.repos.set(cacheKey, {
+            data: strippedRepos,
+            timestamp: Date.now()
+        });
+
         res.status(200).json(strippedRepos);
+
     } catch (error) {
         console.error("Error fetching repos:", error);
         res.status(500).json({
@@ -93,5 +146,15 @@ router.get("/api/github-repos", async (req, res) => {
         });
     }
 });
+
+// Add cache cleanup interval
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, value] of cache.repos.entries()) {
+        if (now - value.timestamp >= cache.cacheTimeout) {
+            cache.repos.delete(key);
+        }
+    }
+}, cache.cacheTimeout);
 
 export default router;
