@@ -34,11 +34,11 @@ let databaseSessionHandler = (app) => {
             resave: false,
             saveUninitialized: false,
             cookie: {
-                maxAge: 1000 * 60 * 60 * 24 * 7,
+                maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-                domain: process.env.NODE_ENV === 'production' ? 'https://performance-tracker-seven.vercel.app' : 'localhost'
+                domain: process.env.NODE_ENV === 'production' ? 'vercel.app' : undefined // Adjust this!
             },
             store: MongoStore.create({
                 client: mongoose.connection.getClient(),
@@ -58,6 +58,13 @@ let databaseSessionHandler = (app) => {
         console.log(req.session);
         res.status(200).send('{ Skills.log } server is running!');
     })
+
+    app.use((req, res, next) => {
+        console.log('Incoming request from:', req.headers.origin);
+        console.log('Session data:', req.session);
+        console.log('Cookies:', req.cookies);
+        next();
+    });
 }
 
 export default databaseSessionHandler;

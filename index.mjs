@@ -14,9 +14,7 @@ import notes from "./src/routes/notes.mjs";
 import logout from "./src/routes/logout.mjs";
 import Friend from './src/routes/Friend.mjs';
 
-
 let app = express();
-app.use(express.json());
 
 const allowedOrigins = [
     'http://localhost:5173',
@@ -27,20 +25,29 @@ const allowedOrigins = [
 
 const corsOptions = {
     origin: function (origin, callback) {
-        if (allowedOrigins.includes(origin) || !origin) {
+        // During development, origin might be undefined when making requests from the same origin
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
         }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
-    exposedHeaders: ['set-cookie']
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['set-cookie'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 };
 
+// Apply CORS to all routes
 app.use(cors(corsOptions));
+
+// Handle OPTIONS preflight requests
 app.options('*', cors(corsOptions));
+app.set('trust proxy', 1);
+app.use(express.json());
+
 let PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

@@ -4,17 +4,23 @@ import '../strategies/localStrategy.mjs';
 
 let router = express.Router();
 
-router.post("/api/login", passport.authenticate("local"),
-    (req, res) => {
-        console.log("Inside login route");
-        console.log(req.session.passport.user);
-        req.session.save((err) => {
-            if (err) {
-                return res.status(500).json({ message: 'Could not save session' });
-            }
-            res.json({ user: req.user });
+router.post("/api/login", passport.authenticate("local"), (req, res) => {
+    console.log("Session before save:", req.session);
+
+    req.session.save((err) => {
+        if (err) {
+            console.error("Session save error:", err);
+            return res.status(500).json({ message: 'Session save failed', error: err.message });
+        }
+
+        console.log("Session after save:", req.session);
+        res.json({
+            user: req.user,
+            sessionID: req.sessionID, // Add this for debugging
+            success: true
         });
     });
+});
 
 router.get('/api/login/status', (req, res) => {
     console.log(req?.user);
