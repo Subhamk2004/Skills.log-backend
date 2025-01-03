@@ -37,12 +37,18 @@ let databaseSessionHandler = (app) => {
                 maxAge: 1000 * 60 * 60 * 24 * 7,
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+                domain: process.env.NODE_ENV === 'production' ? 'https://performance-tracker-seven.vercel.app' : 'localhost'
             },
             store: MongoStore.create({
                 client: mongoose.connection.getClient(),
+                touchAfter: 24 * 3600,
+                crypto: {
+                    secret: process.env.SESSION_SECRET
+                }
             }),
-        }));
+        })
+    );
 
     app.use(passport.initialize());
     app.use(passport.session());
