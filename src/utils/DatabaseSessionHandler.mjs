@@ -38,7 +38,7 @@ let databaseSessionHandler = (app) => {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-                domain: process.env.NODE_ENV === 'production' ? 'vercel.app' : undefined // Adjust this!
+                domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined // Fix the domain
             },
             store: MongoStore.create({
                 client: mongoose.connection.getClient(),

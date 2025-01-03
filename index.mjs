@@ -20,8 +20,10 @@ const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5175',
-    'https://performance-tracker-seven.vercel.app'
+    'https://performance-tracker-seven.vercel.app',
+    'https://skills-log-backend.onrender.com'
 ];
+
 
 const corsOptions = {
     origin: function (origin, callback) {
@@ -54,6 +56,8 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
+
+
 databaseSessionHandler(app);
 app.use(GithubRepo);
 app.use(signup);
@@ -66,3 +70,8 @@ app.use(createNote);
 app.use(notes);
 app.use(logout);
 app.use(Friend);
+
+app.use((req, res, next) => {
+    console.log(`CORS origin: ${req.headers.origin}`);
+    next();
+});
