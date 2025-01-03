@@ -1,74 +1,47 @@
-// GithubRepo.mjs
-import express from "express";
-import dotenv from "dotenv";
-import { encrypt, decrypt } from '../utils/patEncryptor.mjs';
-import { User } from "../schemas/User.mjs";
-
-const router = express.Router();
-
 router.get("/api/github-repos", async (req, res) => {
     try {
-        // Check if user is authenticated
         if (!req.user) {
             return res.status(401).json({ error: 'User not authenticated' });
         }
 
-        // Get user details
         const user = req.user.githubusername;
-        let decryptedPAT;
+        let decryptedPAT = null;
 
-        // Only try to decrypt PAT if it exists
         if (req.user.pat) {
             try {
                 decryptedPAT = decrypt(req.user.pat);
             } catch (error) {
-                console.error('PAT decryption error:', error);
-                // Continue without PAT if decryption fails
+                console.error('PAT decryption error:', error.message);
             }
         }
 
-        let response;
-        const { search } = req.query;
-
-        // Build headers object
         const headers = decryptedPAT
             ? { Authorization: `Bearer ${decryptedPAT}` }
-            : {};
+            : { 'User-Agent': 'Your-App-Name' };
 
-        // Determine which API endpoint to use
-        let apiUrl;
-        if (search) {
-            apiUrl = `https://api.github.com/search/repositories?q=${search}+user:${user}`;
-        } else {
-            apiUrl = decryptedPAT
+        const { search } = req.query;
+        const apiUrl = search
+            ? `https://api.github.com/search/repositories?q=${search}+user:${user}`
+            : decryptedPAT
                 ? 'https://api.github.com/user/repos?per_page=5&sort=updated'
                 : `https://api.github.com/users/${user}/repos?per_page=5&sort=updated`;
-        }
 
-        // Make the API request
-        response = await fetch(apiUrl, { headers });
+        console.log('API URL:', apiUrl);
+
+        const response = await fetch(apiUrl, { headers });
 
         if (!response.ok) {
-            console.error(`GitHub API error: ${response.statusText}`);
-            return res.status(response.status).json({
-                error: `GitHub API error: ${response.statusText}`
-            });
+            console.error(`GitHub API error: ${response.status} ${response.statusText}`);
+            return res.status(response.status).json({ error: response.statusText });
         }
 
         const repos = await response.json();
-
-        // Process the response based on whether it's a search or regular request
-        let strippedRepos;
-        if (!search) {
-            strippedRepos = repos.map((repo) => ({
+        const strippedRepos = !search
+            ? repos.map((repo) => ({
                 name: repo.name,
                 visibility: repo.private ? "private" : "public",
                 description: repo.description || "No description provided.",
-                owner: {
-                    login: repo.owner.login,
-                    avatar_url: repo.owner.avatar_url,
-                    html_url: repo.owner.html_url,
-                },
+                owner: repo.owner,
                 html_url: repo.html_url,
                 language: repo.language || "Not specified",
                 stargazers_count: repo.stargazers_count,
@@ -79,19 +52,12 @@ router.get("/api/github-repos", async (req, res) => {
                 size: repo.size,
                 watchers_count: repo.watchers_count,
                 id: repo.id,
-            }));
-        } else {
-            strippedRepos = repos;
-        }
+            }))
+            : repos;
 
         res.status(200).json(strippedRepos);
     } catch (error) {
-        console.error("Error fetching repos:", error);
-        res.status(500).json({
-            error: "Failed to fetch repos",
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        console.error("Error fetching repos:", error.message);
+        res.status(500).json({ error: "Failed to fetch repos" });
     }
 });
-
-export default router;
