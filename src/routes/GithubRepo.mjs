@@ -1,3 +1,11 @@
+// GithubRepo.mjs
+import express from "express";
+import dotenv from "dotenv";
+import { encrypt, decrypt } from '../utils/patEncryptor.mjs';
+import { User } from "../schemas/User.mjs";
+
+const router = express.Router();
+
 router.get("/api/github-repos", async (req, res) => {
     try {
         if (!req.user) {
@@ -61,3 +69,6 @@ router.get("/api/github-repos", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch repos" });
     }
 });
+
+
+export default router;
