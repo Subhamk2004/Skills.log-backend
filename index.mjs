@@ -75,3 +75,8 @@ app.use((req, res, next) => {
     console.log(`CORS origin: ${req.headers.origin}`);
     next();
 });
+
+app.use((req, res, next) => {
+    console.log('Cookies being sent:', res.getHeaders()['set-cookie']);
+    next();
+});

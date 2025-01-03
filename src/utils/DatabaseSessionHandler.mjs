@@ -36,16 +36,13 @@ let databaseSessionHandler = (app) => {
             cookie: {
                 maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: process.env.NODE_ENV === 'production', // HTTPS ke liye true hona chahiye
                 sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-                domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined // Fix the domain
+                domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined // Correct domain for Render
             },
+
             store: MongoStore.create({
                 client: mongoose.connection.getClient(),
-                touchAfter: 24 * 3600,
-                crypto: {
-                    secret: process.env.SESSION_SECRET
-                }
             }),
         })
     );
@@ -65,6 +62,12 @@ let databaseSessionHandler = (app) => {
         console.log('Cookies:', req.cookies);
         next();
     });
+
+    app.use((req, res, next) => {
+        console.log('Cookies being sent:', res.getHeaders()['set-cookie']);
+        next();
+    });
+    
 }
 
 export default databaseSessionHandler;
