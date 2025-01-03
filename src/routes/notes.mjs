@@ -27,10 +27,18 @@ router.get("/api/notes", async (req, res) => {
 
 router.delete("/api/notes", async (req, res) => {
     try {
-        let username = req.user.username;
+        if (!req.user) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+
+        // Get user details
+        let username;
+        if (req.user) {
+            username = req.user.usernme;
+        }
         let noteId = req.body.id;
         console.log(noteId);
-        
+
         let note = await Note.findOneAndDelete({ _id: noteId, username: username });
         if (!note) {
             return res.status(404).json({
