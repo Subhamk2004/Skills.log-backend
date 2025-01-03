@@ -7,15 +7,7 @@ const router = express.Router();
 
 router.get('/api/streak/', async (req, res) => {
     try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'User not authenticated' });
-        }
-
-        // Get user details
-        let username;
-        if (req.user) {
-            username = req.user.usernme;
-        }
+        let username = req.user.username;
         const today = startOfDay(new Date());
 
         // Get all daily completed tasks for the user

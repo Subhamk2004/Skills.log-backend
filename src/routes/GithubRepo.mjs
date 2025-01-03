@@ -14,10 +14,7 @@ router.get("/api/github-repos", async (req, res) => {
         }
 
         // Get user details
-        let user;
-        if(req.user){
-            user = req.user.githubusername;
-        }
+        const user = req.user.githubusername;
         let decryptedPAT;
 
         // Only try to decrypt PAT if it exists
