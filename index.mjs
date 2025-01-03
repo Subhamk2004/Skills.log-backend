@@ -1,5 +1,4 @@
 import express from "express";
-import { configDotenv } from "dotenv";
 import GithubRepo from "./src/routes/GithubRepo.mjs";
 import cors from "cors";
 import databaseSessionHandler from "./src/utils/DatabaseSessionHandler.mjs";
@@ -13,9 +12,12 @@ import createNote from "./src/routes/createNote.mjs";
 import notes from "./src/routes/notes.mjs";
 import logout from "./src/routes/logout.mjs";
 import Friend from './src/routes/Friend.mjs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 let app = express();
-
+app.set('trust proxy', 1);
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
@@ -27,27 +29,34 @@ const allowedOrigins = [
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // During development, origin might be undefined when making requests from the same origin
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
         }
     },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    exposedHeaders: ['set-cookie'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204
 };
 
 // Apply CORS to all routes
 app.use(cors(corsOptions));
 
-// Handle OPTIONS preflight requests
 app.options('*', cors(corsOptions));
-app.set('trust proxy', 1);
+
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', true);
+    next();
+});
+
+
 app.use(express.json());
 
 let PORT = process.env.PORT || 5000;
@@ -59,9 +68,9 @@ app.listen(PORT, () => {
 
 
 databaseSessionHandler(app);
-app.use(GithubRepo);
-app.use(signup);
 app.use(Login);
+app.use(signup);
+app.use(GithubRepo);
 app.use(createTask);
 app.use(getTasks);
 app.use(updateTask);

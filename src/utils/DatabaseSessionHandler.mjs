@@ -5,6 +5,7 @@ import MongoStore from 'connect-mongo';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
+import '../strategies/localStrategy.mjs';
 
 dotenv.config();
 
@@ -34,18 +35,17 @@ let databaseSessionHandler = (app) => {
             resave: false,
             saveUninitialized: false,
             cookie: {
-                maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+                maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production', // HTTPS ke liye true hona chahiye
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-                domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined // Correct domain for Render
+                secure: process.env.NODE_ENV === 'production', // Only use secure in production
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
             },
-
             store: MongoStore.create({
                 client: mongoose.connection.getClient(),
             }),
         })
     );
+
 
     app.use(passport.initialize());
     app.use(passport.session());
@@ -67,7 +67,7 @@ let databaseSessionHandler = (app) => {
         console.log('Cookies being sent:', res.getHeaders()['set-cookie']);
         next();
     });
-    
+
 }
 
 export default databaseSessionHandler;
