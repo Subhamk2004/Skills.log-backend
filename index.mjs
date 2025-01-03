@@ -81,6 +81,7 @@ app.get('/ping', (req, res) => {
 });
 
 // Routes
+databaseSessionHandler(app);
 app.use(Login);
 app.use(signup);
 app.use(GithubRepo);
@@ -140,5 +141,3 @@ app.listen(PORT, () => {
     // Initial ping when server starts
     keepAlive();
 });
-
-databaseSessionHandler(app);
