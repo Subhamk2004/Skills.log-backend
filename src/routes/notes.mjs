@@ -5,7 +5,15 @@ let router = express.Router();
 
 router.get("/api/notes", async (req, res) => {
     try {
-        let username = req.user.username;
+        if (!req.user) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+
+        // Get user details
+        let username;
+        if (req.user) {
+            username = req.user.usernme;
+        }
         let notes = await Note.find
             ({ username: username });
         console.log('fetching notes');
