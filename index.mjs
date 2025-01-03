@@ -13,11 +13,12 @@ import notes from "./src/routes/notes.mjs";
 import logout from "./src/routes/logout.mjs";
 import Friend from './src/routes/Friend.mjs';
 import dotenv from 'dotenv';
+import fetch from 'node-fetch'; // Add this import
 
 dotenv.config();
-
 let app = express();
 app.set('trust proxy', 1);
+
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
@@ -25,7 +26,6 @@ const allowedOrigins = [
     'https://performance-tracker-seven.vercel.app',
     'https://skills-log-backend.onrender.com'
 ];
-
 
 const corsOptions = {
     origin: function (origin, callback) {
@@ -40,9 +40,8 @@ const corsOptions = {
     credentials: true,
 };
 
-// Apply CORS to all routes
+// Apply CORS
 app.use(cors(corsOptions));
-
 app.options('*', cors(corsOptions));
 
 app.use((req, res, next) => {
@@ -56,11 +55,9 @@ app.use((req, res, next) => {
     next();
 });
 
-
 app.use((req, res, next) => {
     res.on('header', () => {
         const setCookieHeaders = res.getHeader('Set-Cookie');
-
         if (setCookieHeaders) {
             res.setHeader(
                 'Set-Cookie',
@@ -75,18 +72,15 @@ app.use((req, res, next) => {
     next();
 });
 
-
 app.use(express.json());
 
-let PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Keep-alive route
+// Keep-alive route
+app.get('/ping', (req, res) => {
+    res.status(200).send('Server is alive');
 });
 
-
-
-databaseSessionHandler(app);
+// Routes
 app.use(Login);
 app.use(signup);
 app.use(GithubRepo);
@@ -108,3 +102,43 @@ app.use((req, res, next) => {
     console.log('Cookies being sent:', res.getHeaders()['set-cookie']);
     next();
 });
+
+// Keep-alive function
+let lastPingTime = Date.now();
+const PING_INTERVAL = 30000; // 30 seconds
+
+const keepAlive = () => {
+    const currentTime = Date.now();
+    console.log(`Last ping was ${(currentTime - lastPingTime) / 1000} seconds ago`);
+
+    fetch('https://skills-log-backend.onrender.com/ping', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+        .then(response => {
+            if (response.ok) {
+                console.log('Server pinged successfully');
+                lastPingTime = currentTime;
+            } else {
+                console.error('Failed to ping server:', response.status);
+            }
+        })
+        .catch(error => {
+            console.error('Error pinging server:', error);
+        });
+};
+
+// Start the keep-alive interval
+setInterval(keepAlive, PING_INTERVAL);
+
+// Start server
+let PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    // Initial ping when server starts
+    keepAlive();
+});
+
+databaseSessionHandler(app);
