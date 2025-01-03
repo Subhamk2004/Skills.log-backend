@@ -57,6 +57,25 @@ app.use((req, res, next) => {
 });
 
 
+app.use((req, res, next) => {
+    res.on('header', () => {
+        const setCookieHeaders = res.getHeader('Set-Cookie');
+
+        if (setCookieHeaders) {
+            res.setHeader(
+                'Set-Cookie',
+                setCookieHeaders.map((cookie) =>
+                    cookie.includes('connect.sid')
+                        ? `${cookie}; Partitioned`
+                        : cookie
+                )
+            );
+        }
+    });
+    next();
+});
+
+
 app.use(express.json());
 
 let PORT = process.env.PORT || 5000;
