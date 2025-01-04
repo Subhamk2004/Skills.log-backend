@@ -17,7 +17,7 @@ router.get('/api/streak/', async (req, res) => {
             status: 'completed'
         }).sort({ dueDate: -1 });
 
-        // Group tasks by date
+        // Group tasks by date using startOfDay to normalize the dates
         const tasksByDate = tasks.reduce((acc, task) => {
             const dateStr = startOfDay(new Date(task.dueDate)).toISOString();
             if (!acc[dateStr]) {
@@ -27,16 +27,15 @@ router.get('/api/streak/', async (req, res) => {
             return acc;
         }, {});
 
-        // Calculate streaks
+        // Calculate current streak
         let currentStreak = 0;
-        let longestStreak = 0;
-        let tempStreak = 0;
         let checkDate = today;
 
-        // Calculate current streak
         while (true) {
             const dateStr = checkDate.toISOString();
-            if (tasksByDate[dateStr]) {
+            const tasksForDate = tasksByDate[dateStr];
+
+            if (tasksForDate && tasksForDate.length > 0) {
                 currentStreak++;
                 checkDate = subDays(checkDate, 1);
             } else {
@@ -45,7 +44,10 @@ router.get('/api/streak/', async (req, res) => {
         }
 
         // Calculate longest streak
-        let dates = Object.keys(tasksByDate).sort();
+        let longestStreak = 0;
+        let tempStreak = 0;
+        const dates = Object.keys(tasksByDate).sort((a, b) => new Date(b) - new Date(a));
+
         for (let i = 0; i < dates.length; i++) {
             if (i === 0) {
                 tempStreak = 1;
@@ -64,6 +66,7 @@ router.get('/api/streak/', async (req, res) => {
                 }
             }
         }
+
         // Check final tempStreak
         if (tempStreak > longestStreak) {
             longestStreak = tempStreak;
@@ -81,6 +84,7 @@ router.get('/api/streak/', async (req, res) => {
             streakDoc.streak = currentStreak;
             streakDoc.longestStreak = Math.max(longestStreak, streakDoc.longestStreak || 0);
         }
+
         await streakDoc.save();
 
         res.status(200).json({
@@ -89,7 +93,6 @@ router.get('/api/streak/', async (req, res) => {
             message: "Streak calculated successfully",
             success: true
         });
-
     } catch (error) {
         console.error(error);
         res.status(500).json({
