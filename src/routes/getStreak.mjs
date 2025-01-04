@@ -1,29 +1,29 @@
 import express from "express";
 import Streak from "../schemas/Streak.mjs";
 import Task from "../schemas/Task.mjs";
-import { startOfDay, addDays, subDays, isAfter } from 'date-fns';
+import { startOfDay, subDays } from "date-fns";
 
 const router = express.Router();
 
 router.get('/api/streak/', async (req, res) => {
     try {
-        let username = req.user.username;
+        const username = req.user.username;
         const today = startOfDay(new Date());
 
-        // Get all daily completed tasks for the user
+        // Fetch all daily completed tasks for the user
         const tasks = await Task.find({
             username,
             type: 'daily',
             status: 'completed'
-        }).sort({ dueDate: -1 });
+        }).sort({ dueDate: 1 }); // Sort by dueDate ascending
 
-        // Group tasks by date using startOfDay to normalize the dates
+        // Group tasks by normalized start of the day
         const tasksByDate = tasks.reduce((acc, task) => {
-            const dateStr = startOfDay(new Date(task.dueDate)).toISOString();
-            if (!acc[dateStr]) {
-                acc[dateStr] = [];
+            const normalizedDate = startOfDay(new Date(task.dueDate)).toISOString();
+            if (!acc[normalizedDate]) {
+                acc[normalizedDate] = [];
             }
-            acc[dateStr].push(task);
+            acc[normalizedDate].push(task);
             return acc;
         }, {});
 
@@ -33,9 +33,7 @@ router.get('/api/streak/', async (req, res) => {
 
         while (true) {
             const dateStr = checkDate.toISOString();
-            const tasksForDate = tasksByDate[dateStr];
-
-            if (tasksForDate && tasksForDate.length > 0) {
+            if (tasksByDate[dateStr]) {
                 currentStreak++;
                 checkDate = subDays(checkDate, 1);
             } else {
@@ -46,31 +44,23 @@ router.get('/api/streak/', async (req, res) => {
         // Calculate longest streak
         let longestStreak = 0;
         let tempStreak = 0;
-        const dates = Object.keys(tasksByDate).sort((a, b) => new Date(b) - new Date(a));
+        const sortedDates = Object.keys(tasksByDate).map(date => new Date(date)).sort((a, b) => a - b);
 
-        for (let i = 0; i < dates.length; i++) {
+        for (let i = 0; i < sortedDates.length; i++) {
             if (i === 0) {
                 tempStreak = 1;
             } else {
-                const currentDate = new Date(dates[i]);
-                const prevDate = new Date(dates[i - 1]);
-                const dayDiff = Math.abs((currentDate - prevDate) / (1000 * 60 * 60 * 24));
-
+                const dayDiff = (sortedDates[i] - sortedDates[i - 1]) / (1000 * 60 * 60 * 24);
                 if (dayDiff === 1) {
                     tempStreak++;
                 } else {
-                    if (tempStreak > longestStreak) {
-                        longestStreak = tempStreak;
-                    }
+                    longestStreak = Math.max(longestStreak, tempStreak);
                     tempStreak = 1;
                 }
             }
         }
 
-        // Check final tempStreak
-        if (tempStreak > longestStreak) {
-            longestStreak = tempStreak;
-        }
+        longestStreak = Math.max(longestStreak, tempStreak);
 
         // Update or create streak document
         let streakDoc = await Streak.findOne({ username });
