@@ -10,7 +10,7 @@ router.post("/api/create-task",
     async (req, res) => {
         try {
             let actualData = req.body;
-            console.log(actualData);
+            // console.log(actualData);
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({
@@ -21,7 +21,7 @@ router.post("/api/create-task",
 
             const validatedData = matchedData(req);
             const newTask = new Task(validatedData);
-            console.log(newTask);
+            // console.log(newTask);
             
             const savedTask = await newTask.save();
             return res.status(201).json({

@@ -52,19 +52,19 @@ let databaseSessionHandler = (app) => {
 
     app.get('/', (req, res) => {
         req.session.visited = true;
-        console.log(req.session);
+        // console.log(req.session);
         res.status(200).send('{ Skills.log } server is running!');
     })
 
     app.use((req, res, next) => {
-        console.log('Incoming request from:', req.headers.origin);
-        console.log('Session data:', req.session);
-        console.log('Cookies:', req.cookies);
+        // console.log('Incoming request from:', req.headers.origin);
+        // console.log('Session data:', req.session);
+        // console.log('Cookies:', req.cookies);
         next();
     });
 
     app.use((req, res, next) => {
-        console.log('Cookies being sent:', res.getHeaders()['set-cookie']);
+        // console.log('Cookies being sent:', res.getHeaders()['set-cookie']);
         next();
     });
 

@@ -95,12 +95,12 @@ app.use(logout);
 app.use(Friend);
 
 app.use((req, res, next) => {
-    console.log(`CORS origin: ${req.headers.origin}`);
+    // console.log(`CORS origin: ${req.headers.origin}`);
     next();
 });
 
 app.use((req, res, next) => {
-    console.log('Cookies being sent:', res.getHeaders()['set-cookie']);
+    // console.log('Cookies being sent:', res.getHeaders()['set-cookie']);
     next();
 });
 
@@ -110,7 +110,7 @@ const PING_INTERVAL = 30000; // 30 seconds
 
 const keepAlive = () => {
     const currentTime = Date.now();
-    console.log(`Last ping was ${(currentTime - lastPingTime) / 1000} seconds ago`);
+    // console.log(`Last ping was ${(currentTime - lastPingTime) / 1000} seconds ago`);
 
     fetch('https://skills-log-backend.onrender.com/ping', {
         method: 'GET',
@@ -120,7 +120,7 @@ const keepAlive = () => {
     })
         .then(response => {
             if (response.ok) {
-                console.log('Server pinged successfully');
+                // console.log('Server pinged successfully');
                 lastPingTime = currentTime;
             } else {
                 console.error('Failed to ping server:', response.status);

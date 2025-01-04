@@ -33,7 +33,7 @@ router.get("/api/github-repos", async (req, res) => {
         if (req.user.pat) {
             try {
                 decryptedPAT = decrypt(req.user.pat);
-                console.log('PAT decryption successful');
+                // console.log('PAT decryption successful');
             } catch (error) {
                 console.error('PAT decryption error:', error);
                 // Log additional details in development

@@ -6,7 +6,7 @@ let router = express.Router();
 router.put('/api/updateTask', async (req, res) => {
     try {
         let { taskId } = req.body;
-        console.log(taskId);
+        // console.log(taskId);
         await Task.updateOne(
             { _id: taskId },
             {

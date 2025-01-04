@@ -17,6 +17,9 @@ router.get('/api/streak/', async (req, res) => {
             status: 'completed'
         }).sort({ dueDate: 1 }); // Sort by dueDate ascending
 
+        console.log(tasks);
+        
+
         // Group tasks by normalized start of the day
         const tasksByDate = tasks.reduce((acc, task) => {
             const normalizedDate = startOfDay(new Date(task.dueDate)).toISOString();

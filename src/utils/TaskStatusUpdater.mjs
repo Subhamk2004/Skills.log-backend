@@ -6,7 +6,7 @@ const updateTaskStatuses = async (username) => {
 
     try {
         // Ensure username is part of the query
-        console.log(`Updating task statuses for user: ${username}`);
+        // console.log(`Updating task statuses for user: ${username}`);
         
 
         // Update tasks for the specific user

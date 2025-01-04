@@ -5,7 +5,7 @@ import '../strategies/localStrategy.mjs';
 let router = express.Router();
 
 router.post("/api/login", passport.authenticate("local"), (req, res) => {
-    console.log("Session before save:", req.session);
+    // console.log("Session before save:", req.session);
 
     req.session.save((err) => {
         if (err) {
@@ -13,7 +13,7 @@ router.post("/api/login", passport.authenticate("local"), (req, res) => {
             return res.status(500).json({ message: 'Session save failed', error: err.message });
         }
 
-        console.log("Session after save:", req.session);
+        // console.log("Session after save:", req.session);
         res.json({
             user: req.user,
             sessionID: req.sessionID, // Add this for debugging
@@ -23,7 +23,7 @@ router.post("/api/login", passport.authenticate("local"), (req, res) => {
 });
 
 router.get('/api/login/status', (req, res) => {
-    console.log(req?.user);
+    // console.log(req?.user);
     if (req.user) {
         res.status(200).json({
             user: req.user,

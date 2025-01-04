@@ -6,10 +6,10 @@ const router = express.Router();
 router.get("/api/tasks", async (req, res) => {
     try {
         // Call updateTaskStatuses directly - no need to fetch tasks first
-        console.log('Updating task statuses');
+        // console.log('Updating task statuses');
         let username = req.user.username;
         const updatedTasks = await updateTaskStatus(username);
-        console.log(updatedTasks);
+        // console.log(updatedTasks);
         
         res.json({
             isSaved: true,

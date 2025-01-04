@@ -26,7 +26,7 @@ router.post('/api/signup',
     async (req, res, next) => {
         try {
             const user = req.body;
-            console.log(user);
+            // console.log(user);
 
             if (req.file) {
                 const result = await cloudinary.uploader.upload(req.file.path);

@@ -11,7 +11,7 @@ router.post("/api/create-note",
         try {
             let actualData = req.body;
             let username = req.user.username;
-            console.log(actualData);
+            // console.log(actualData);
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 console.log(errors);
@@ -24,7 +24,7 @@ router.post("/api/create-note",
 
             const validatedData = matchedData(req);
             const newNote = new Note(validatedData);
-            console.log(newNote);
+            // console.log(newNote);
             
             const savedNote = await newNote.save();
             return res.status(201).json({

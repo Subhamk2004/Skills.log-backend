@@ -28,7 +28,7 @@ export default passport.use(
     },
         async (email, password, done) => {
             try {
-                console.log("Inside passport login");
+                // console.log("Inside passport login");
 
                 let findUser = await User.findOne({ email });
                 if (!findUser) throw new Error("User not foud please signup");

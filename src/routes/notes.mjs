@@ -8,7 +8,7 @@ router.get("/api/notes", async (req, res) => {
         let username = req.user.username;
         let notes = await Note.find
             ({ username: username });
-        console.log('fetching notes');
+        // console.log('fetching notes');
 
         return res.status(200).json({
             message: "Notes fetched successfully",
@@ -37,7 +37,7 @@ router.delete("/api/notes", async (req, res) => {
             username = req.user.username;
         }
         let noteId = req.body.id;
-        console.log(noteId);
+        // console.log(noteId);
 
         let note = await Note.findOneAndDelete({ _id: noteId, username: username });
         if (!note) {
