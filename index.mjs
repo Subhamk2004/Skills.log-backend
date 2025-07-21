@@ -24,7 +24,8 @@ const allowedOrigins = [
     'http://localhost:5174',
     'http://localhost:5175',
     'https://performance-tracker-seven.vercel.app',
-    'https://skills-log-backend.onrender.com'
+    'https://skills-log-backend.onrender.com',
+    'https://skills-log-backend-xaeq.onrender.com/'
 ];
 
 const corsOptions = {
