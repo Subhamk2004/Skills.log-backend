@@ -76,9 +76,9 @@ app.use(express.json());
 
 // Keep-alive route
 // Keep-alive route
-app.get('/ping', (req, res) => {
-    res.status(200).send('Server is alive');
-});
+// app.get('/ping', (req, res) => {
+//     res.status(200).send('Server is alive');
+// });
 
 // Routes
 databaseSessionHandler(app);
@@ -105,39 +105,39 @@ app.use((req, res, next) => {
 });
 
 // Keep-alive function
-let lastPingTime = Date.now();
-const PING_INTERVAL = 30000; // 30 seconds
+// let lastPingTime = Date.now();
+// const PING_INTERVAL = 30000; // 30 seconds
 
-const keepAlive = () => {
-    const currentTime = Date.now();
-    // console.log(`Last ping was ${(currentTime - lastPingTime) / 1000} seconds ago`);
+// const keepAlive = () => {
+//     const currentTime = Date.now();
+//     // console.log(`Last ping was ${(currentTime - lastPingTime) / 1000} seconds ago`);
 
-    fetch('https://skills-log-backend.onrender.com/ping', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    })
-        .then(response => {
-            if (response.ok) {
-                // console.log('Server pinged successfully');
-                lastPingTime = currentTime;
-            } else {
-                console.error('Failed to ping server:', response.status);
-            }
-        })
-        .catch(error => {
-            console.error('Error pinging server:', error);
-        });
-};
+//     fetch('https://skills-log-backend.onrender.com/ping', {
+//         method: 'GET',
+//         headers: {
+//             'Content-Type': 'application/json',
+//         },
+//     })
+//         .then(response => {
+//             if (response.ok) {
+//                 // console.log('Server pinged successfully');
+//                 lastPingTime = currentTime;
+//             } else {
+//                 console.error('Failed to ping server:', response.status);
+//             }
+//         })
+//         .catch(error => {
+//             console.error('Error pinging server:', error);
+//         });
+// };
 
-// Start the keep-alive interval
-setInterval(keepAlive, PING_INTERVAL);
+// // Start the keep-alive interval
+// setInterval(keepAlive, PING_INTERVAL);
 
 // Start server
 let PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     // Initial ping when server starts
-    keepAlive();
+    // keepAlive();
 });
